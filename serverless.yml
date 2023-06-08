@@ -1,0 +1,50 @@
+service: sqsfilterdeploy
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+functions:
+  firsthandler:
+    handler: src/firsthandler.handler
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - MyQueue
+              - Arn
+          batchSize: 1
+          filterPatterns:
+            - body: { eventNumber: ['1'] }
+  secondhandler:
+    handler: src/secondhandler.handler
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - MyQueue
+              - Arn
+          batchSize: 1
+          filterPatterns:
+            - body: { eventNumber: ['2'] }
+  thirdhandler:
+    handler: src/thirdhandler.handler
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - MyQueue
+              - Arn
+          batchSize: 1 # how many SQS messages can be included in a single Lambda invocation
+          filterPatterns:
+            - body: { eventNumber: ['3'] }
+
+
+resources:
+  Resources:
+    MyQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "MyQueue"
